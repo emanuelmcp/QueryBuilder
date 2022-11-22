@@ -1,75 +1,72 @@
 package org.example;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Optional;
+//TODO extender de builder
 
 public class SelectBuilder implements Executor {
 
     private final StringBuilder query= new StringBuilder("");
 
-    private Connection connection;
+   /* public SelectBuilder(Connection connection, PreparedStatement preparedStatement, ResultSet resultSet) {
+        super(connection, preparedStatement, resultSet);
+    }*/
 
-    private PreparedStatement preparedStatement;
-
-    ResultSet resultSet;
-
-    public SelectBuilder() {
-    }
-
-    public SelectBuilder(Connection connection, PreparedStatement preparedStatement, ResultSet resultSet) {
-        this.connection = connection;
-        this.preparedStatement = preparedStatement;
-        this.resultSet = resultSet;
-    }
 
     public SelectBuilder select(String ...fields){
-        query.append("SELECT ");
+        query.append(" SELECT ");
         Utils.append(query, fields);
         query.deleteCharAt(query.length() - 2);
         return this;
     }
 
     public SelectBuilder select(){
-        query.append("SELECT * ");
+        query.append(" SELECT * ");
         return this;
     }
 
     public SelectBuilder from(String ...tables){
-        query.append("FROM ");
+        query.append(" FROM ");
         Utils.append(query, tables);
         query.deleteCharAt(query.length() - 2);
         return this;
     }
 
     public SelectBuilder where(){
-        query.append("WHERE ");
+        query.append(" WHERE ");
         return this;
     }
 
-    public SelectBuilder like(String expression){
-        query.append("LIKE " + "'" + expression + "'" + " ");
-        return this;
-    }
-    public SelectBuilder and(String field){
-        query.append("AND " +field + " ");
+    public SelectBuilder condition(String field1, Operator op, String field2){
+        if (op == Operator.EQUALS) query.append(field1 + " = " + field2);
+        if (op == Operator.MAYOR) query.append(field1 + " > " + field2);
+        if (op == Operator.MINOR) query.append(field1 + " < " + field2);
+        if (op == Operator.MAYOR_OR_EQUALS) query.append(field1 + " >= " + field2);
+        if (op == Operator.MINOR_OR_EQUALS) query.append(field1 + " <= " + field2);
+        if (op == Operator.LIKE) query.append(field1 + " LIKE " + "'" + field2 + "'" + " ");
         return this;
     }
 
-    public SelectBuilder or(String field){
-        query.append("OR " +field + " ");
+    public SelectBuilder join (String table, String field1, String field2){
+        query.append(" INNER JOIN " + table + " ON " + field1 + " = " + field2);
         return this;
     }
+    public SelectBuilder and (){
+        query.append(" AND ");
+        return this;
+    }
+    public SelectBuilder or (){
+        query.append(" OR ");
+        return this;
+    }
+
 
     @Override
     public String execute() {
+        query.append(";");
         return query.toString();
     }
 
-    public Optional<ResultSet> fetch(){
+    /*public Optional<ResultSet> fetch(){
+        query.append(";");
         Optional<ResultSet> results;
         try{
             this.connection.setAutoCommit(false);
@@ -85,5 +82,5 @@ public class SelectBuilder implements Executor {
             throw new RuntimeException(e);
         }
         return results;
-    }
+    }*/
 }
